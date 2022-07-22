@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -54,9 +55,9 @@ public class JoiaController {
         return new ResponseEntity<Void>(HttpStatus.OK);
     }
 
-    @PutMapping("/joia/{id}")
-    public ResponseEntity<JoiaDto> atualizarJoia(@PathVariable long id, @RequestBody Joia joia) {
-        Joia joiaAtualizada = joiaService.atualizarJoia(joia, id);
+    @PatchMapping("/joia/{id}")
+    public ResponseEntity<JoiaDto> atualizarJoia(@PathVariable long id, @RequestBody Map<String, String> data) {
+        Joia joiaAtualizada = joiaService.atualizarJoia(data, id);
 
         return new ResponseEntity<JoiaDto>(new JoiaDto(joiaAtualizada), HttpStatus.OK);
     }

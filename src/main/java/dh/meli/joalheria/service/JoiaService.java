@@ -8,13 +8,15 @@ import dh.meli.joalheria.repository.IJoiaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class JoiaService implements IJoiaService {
+public class JoiaService<T> implements IJoiaService<T> {
 
     @Autowired
     private IJoiaRepository joiaRepository;
@@ -85,18 +87,33 @@ public class JoiaService implements IJoiaService {
     }
 
     @Override
-    public Joia atualizarJoia(Joia joia, long id) {
+    public Joia atualizarJoia(Map<String, T> data, long id) {
+        Joia joia = joiaRepository.findById(id).orElse(null);
+
+        if (joia == null) {
+            throw new JoiaNotFound(String.format("Não foi possível encontrar a jóia de id %d", id));
+        }
+
         List<Joia> joiaList = new ArrayList<Joia>();
 
         joiaRepository.findAll().forEach(joiaList::add);
 
-        if (joia.getCodigoBarras() != null) {
-            joiaList.forEach(joiaExistente -> {
+        data.forEach((atributo, valor) -> {
+            switch (atributo) {
+                case "material": joia.setMaterial((String) valor); break;
+                case "peso": joia.setPeso((double) valor); break;
+                case "quilates": joia.setQuilates((int) valor); break;
+                case "codigoBarras": joia.setCodigoBarras((String) valor); break;
+            }
+        });
+
+        joiaList.forEach((joiaExistente -> {
+            if (joiaExistente.getId() != joia.getId()) {
                 if (joiaExistente.getCodigoBarras().equals(joia.getCodigoBarras())) {
-                    throw new JoiaAlreadyExists("Atributo código de barras já cadastrado");
+                    throw new JoiaAlreadyExists("Está jóia já existe.");
                 }
-            });
-        }
+            }
+        }));
 
         try {
             return joiaRepository.save(joia);
